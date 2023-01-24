@@ -1,10 +1,11 @@
 ﻿using System.Data;
+using System.Data.SqlClient;
 
 namespace Application;
 
 internal interface IProvider
 {
-    IDbConnection GetSqlServerConnection();
+    SqlConnection GetSqlServerConnection();
 
     IDbConnection GetPostgresqlConnection();
 }
