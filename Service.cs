@@ -63,6 +63,7 @@ internal class Service : IService
                 // insert into sql server
                 foreach (var item in data)
                 {
+                    // TODO : insert logic
                     sqlServerConnection.Execute($"INSERT INTO {destinationSchema}.{tableName} VALUES(@col1, @col2, ...)", item);
                 }
             }
@@ -71,29 +72,39 @@ internal class Service : IService
 
     public void ValidateProviders()
     {
+    sqlServerStart:
         using (var sqlServerConnection = _sqlServerConnection)
         {
             if (!IsServerConnected(sqlServerConnection))
             {
                 Console.WriteLine("Invalid SQL Server Connection!");
+
                 Console.WriteLine("Provide the valid SQL Server Connection String...");
-                Environment.SetEnvironmentVariable("SqlServerConnectionString", Console.ReadLine());
+                var connectionString = Console.ReadLine();
+                EnvironmentVariable.Set("SqlServerConnectionString", connectionString);
+
                 Console.WriteLine("SqlServerConnectionString Set Successfully!");
+
+                if (!IsServerConnected(sqlServerConnection)) goto sqlServerStart;
             }
         }
 
+    postgreSqlStart:
         using (var postgreSqlConnection = _postgresqlConnection)
         {
             if (!IsServerConnected(postgreSqlConnection))
             {
                 Console.WriteLine("Invalid PostgreSQL Connection!");
+
                 Console.WriteLine("Provide the valid PostgreSQL Connection String...");
-                Environment.SetEnvironmentVariable("PostgresqlConnectionString", Console.ReadLine());
+                var connectionString = Console.ReadLine();
+                EnvironmentVariable.Set("PostgresqlConnectionString", connectionString);
+
                 Console.WriteLine("PostgresqlConnectionString Set Successfully!");
+
+                if (!IsServerConnected(postgreSqlConnection)) goto postgreSqlStart;
             }
         }
-
-        ValidateProviders();
     }
 
     #region Private methods

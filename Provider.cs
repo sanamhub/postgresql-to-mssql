@@ -11,8 +11,8 @@ internal class Provider : IProvider
 
     public Provider()
     {
-        _sqlServerConnectionString = Environment.GetEnvironmentVariable("SqlServerConnectionString");
-        _postgresqlConnectionString = Environment.GetEnvironmentVariable("PostgresqlConnectionString");
+        _sqlServerConnectionString = EnvironmentVariable.Get("SqlServerConnectionString");
+        _postgresqlConnectionString = EnvironmentVariable.Get("PostgresqlConnectionString");
     }
 
     public IDbConnection GetSqlServerConnection() => new SqlConnection(_sqlServerConnectionString);
