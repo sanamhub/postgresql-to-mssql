@@ -12,8 +12,8 @@ internal class Provider : IProvider
     public Provider()
     {
         // todo: get from config
-        _mssqlConnectionString = "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;";
-        _postgresqlConnectionString = "Server=127.0.0.1;Port=5432;Database=myDataBase;User Id=myUsername;Password=myPassword;";
+        _mssqlConnectionString = "";
+        _postgresqlConnectionString = "";
     }
 
     public IDbConnection GetMssqlConnection() => new SqlConnection(_mssqlConnectionString);

@@ -10,5 +10,4 @@ var serviceProvider = services.BuildServiceProvider();
 var service = serviceProvider.GetService<IService>();
 
 service?.Migrate();
-
 Console.ReadLine();
