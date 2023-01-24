@@ -6,20 +6,20 @@ namespace Application;
 internal class Service : IService
 {
     private readonly IProvider _provider;
-    private IDbConnection _mssqlConnection;
+    private IDbConnection _sqlServerConnection;
     private IDbConnection _postgresqlConnection;
 
     public Service(IProvider provider)
     {
         _provider = provider;
-        _mssqlConnection = _provider.GetMssqlConnection();
+        _sqlServerConnection = _provider.GetSqlServerConnection();
         _postgresqlConnection = _provider.GetPostgresqlConnection();
     }
 
     public void Migrate()
     {
         using var postgresConnection = _postgresqlConnection;
-        using var sqlServerConnection = _mssqlConnection;
+        using var sqlServerConnection = _sqlServerConnection;
 
         postgresConnection.Open();
         sqlServerConnection.Open();
@@ -69,6 +69,33 @@ internal class Service : IService
         }
     }
 
+    public void ValidateProviders()
+    {
+        using (var sqlServerConnection = _sqlServerConnection)
+        {
+            if (!IsServerConnected(sqlServerConnection))
+            {
+                Console.WriteLine("Invalid SQL Server Connection!");
+                Console.WriteLine("Provide the valid SQL Server Connection String...");
+                Environment.SetEnvironmentVariable("SqlServerConnectionString", Console.ReadLine());
+                Console.WriteLine("SqlServerConnectionString Set Successfully!");
+            }
+        }
+
+        using (var postgreSqlConnection = _postgresqlConnection)
+        {
+            if (!IsServerConnected(postgreSqlConnection))
+            {
+                Console.WriteLine("Invalid PostgreSQL Connection!");
+                Console.WriteLine("Provide the valid PostgreSQL Connection String...");
+                Environment.SetEnvironmentVariable("PostgresqlConnectionString", Console.ReadLine());
+                Console.WriteLine("PostgresqlConnectionString Set Successfully!");
+            }
+        }
+
+        ValidateProviders();
+    }
+
     #region Private methods
 
     private static string MapPostgresToSqlServerType(string postgresType)
@@ -107,6 +134,19 @@ internal class Service : IService
         };
 
         return typeMapping.TryGetValue(postgresType.ToLower(), out string value) ? value : "nvarchar(max)";
+    }
+
+    private static bool IsServerConnected(IDbConnection connection)
+    {
+        try
+        {
+            connection.Open();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     #endregion

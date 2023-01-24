@@ -9,5 +9,6 @@ services.AddTransient<IService, Service>();
 var serviceProvider = services.BuildServiceProvider();
 var service = serviceProvider.GetService<IService>();
 
+service?.ValidateProviders();
 service?.Migrate();
 Console.ReadLine();

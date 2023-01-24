@@ -4,6 +4,7 @@ namespace Application;
 
 internal interface IProvider
 {
-    IDbConnection GetMssqlConnection();
+    IDbConnection GetSqlServerConnection();
+
     IDbConnection GetPostgresqlConnection();
 }

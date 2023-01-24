@@ -6,17 +6,16 @@ namespace Application;
 
 internal class Provider : IProvider
 {
-    private string _mssqlConnectionString;
+    private string _sqlServerConnectionString;
     private string _postgresqlConnectionString;
 
     public Provider()
     {
-        // todo: get from config
-        _mssqlConnectionString = "";
-        _postgresqlConnectionString = "";
+        _sqlServerConnectionString = Environment.GetEnvironmentVariable("SqlServerConnectionString");
+        _postgresqlConnectionString = Environment.GetEnvironmentVariable("PostgresqlConnectionString");
     }
 
-    public IDbConnection GetMssqlConnection() => new SqlConnection(_mssqlConnectionString);
+    public IDbConnection GetSqlServerConnection() => new SqlConnection(_sqlServerConnectionString);
 
     public IDbConnection GetPostgresqlConnection() => new NpgsqlConnection(_postgresqlConnectionString);
 }

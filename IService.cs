@@ -3,4 +3,6 @@
 internal interface IService
 {
     void Migrate();
+
+    void ValidateProviders();
 }
