@@ -6,20 +6,16 @@ namespace Application;
 internal class Service : IService
 {
     private readonly IProvider _provider;
-    private IDbConnection _sqlServerConnection;
-    private IDbConnection _postgresqlConnection;
 
     public Service(IProvider provider)
     {
         _provider = provider;
-        _sqlServerConnection = _provider.GetSqlServerConnection();
-        _postgresqlConnection = _provider.GetPostgresqlConnection();
     }
 
     public void Migrate()
     {
-        using var postgresConnection = _postgresqlConnection;
-        using var sqlServerConnection = _sqlServerConnection;
+        using var postgresConnection = _provider.GetPostgresqlConnection();
+        using var sqlServerConnection = _provider.GetSqlServerConnection();
 
         postgresConnection.Open();
         sqlServerConnection.Open();
@@ -73,7 +69,7 @@ internal class Service : IService
     public void ValidateProviders()
     {
     sqlServerStart:
-        using (var sqlServerConnection = _sqlServerConnection)
+        using (var sqlServerConnection = _provider.GetSqlServerConnection())
         {
             if (!IsServerConnected(sqlServerConnection))
             {
@@ -90,7 +86,7 @@ internal class Service : IService
         }
 
     postgreSqlStart:
-        using (var postgreSqlConnection = _postgresqlConnection)
+        using (var postgreSqlConnection = _provider.GetPostgresqlConnection())
         {
             if (!IsServerConnected(postgreSqlConnection))
             {
