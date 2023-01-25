@@ -1,6 +1,9 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
+using Application.Providers.Interfaces;
+using Application.Services.Interfaces;
+using Application.Validators.Interfaces;
 using Dapper;
 
 namespace Application;
@@ -8,16 +11,23 @@ namespace Application;
 internal class Service : IService
 {
     private readonly IProvider _provider;
+    private readonly IValidator _validator;
 
-    public Service(IProvider provider)
+    public Service(
+        IProvider provider,
+        IValidator validator
+        )
     {
         _provider = provider;
+        _validator = validator;
     }
 
     public void Migrate()
     {
         try
         {
+            _validator.ValidateProviders();
+
             using var postgresConnection = _provider.GetPostgresqlConnection();
             using var sqlServerConnection = _provider.GetSqlServerConnection();
 
@@ -77,43 +87,6 @@ internal class Service : IService
         }
     }
 
-    public void ValidateProviders()
-    {
-    sqlServerStart:
-        using (var sqlServerConnection = _provider.GetSqlServerConnection())
-        {
-            if (!IsServerConnected(sqlServerConnection))
-            {
-                Console.WriteLine("Invalid SQL Server Connection!");
-
-                Console.WriteLine("Provide the valid SQL Server Connection String...");
-                var connectionString = Console.ReadLine();
-                EnvironmentVariable.Set("SqlServerConnectionString", connectionString);
-
-                Console.WriteLine("SqlServerConnectionString Set Successfully!");
-
-                if (!IsServerConnected(sqlServerConnection)) goto sqlServerStart;
-            }
-        }
-
-    postgreSqlStart:
-        using (var postgreSqlConnection = _provider.GetPostgresqlConnection())
-        {
-            if (!IsServerConnected(postgreSqlConnection))
-            {
-                Console.WriteLine("Invalid PostgreSQL Connection!");
-
-                Console.WriteLine("Provide the valid PostgreSQL Connection String...");
-                var connectionString = Console.ReadLine();
-                EnvironmentVariable.Set("PostgresqlConnectionString", connectionString);
-
-                Console.WriteLine("PostgresqlConnectionString Set Successfully!");
-
-                if (!IsServerConnected(postgreSqlConnection)) goto postgreSqlStart;
-            }
-        }
-    }
-
     #region Private methods
 
     private static string MapPostgresToSqlServerType(string postgresType)
@@ -152,19 +125,6 @@ internal class Service : IService
         };
 
         return typeMapping.TryGetValue(postgresType.ToLower(), out string value) ? value : "nvarchar(max)";
-    }
-
-    private static bool IsServerConnected(IDbConnection connection)
-    {
-        try
-        {
-            connection.Open();
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
     }
 
     private static DataTable ToDataTable<T>(List<T> items)

@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
 
-namespace Application;
+namespace Application.Providers.Interfaces;
 
 internal interface IProvider
 {

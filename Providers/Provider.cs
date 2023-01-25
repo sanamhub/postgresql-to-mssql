@@ -1,5 +1,7 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using Application.Helpers;
+using Application.Providers.Interfaces;
 using Npgsql;
 
 namespace Application;
@@ -11,8 +13,8 @@ internal class Provider : IProvider
 
     public Provider()
     {
-        _sqlServerConnectionString = EnvironmentVariable.Get("SqlServerConnectionString");
-        _postgresqlConnectionString = EnvironmentVariable.Get("PostgresqlConnectionString");
+        _sqlServerConnectionString = EnvironmentVariableHelper.Get("SqlServerConnectionString");
+        _postgresqlConnectionString = EnvironmentVariableHelper.Get("PostgresqlConnectionString");
     }
 
     public SqlConnection GetSqlServerConnection() => new(_sqlServerConnectionString);
