@@ -2,6 +2,7 @@
 using Application.Helpers;
 using Application.Providers.Interfaces;
 using Application.Validators.Interfaces;
+using Spectre.Console;
 
 namespace Application.Validators;
 
@@ -21,34 +22,36 @@ internal class Validator : IValidator
         {
             if (!IsServerConnected(sqlServerConnection))
             {
-                Console.WriteLine("Invalid SQL Server Connection!");
+                SpectreConsoleHelper.Warning("[red]WARN:[/] Invalid sql server connection..");
+                SpectreConsoleHelper.Information("[blue]INFO:[/] [red]Provide the valid sql server connection string[/]");
+                AnsiConsole.MarkupLine("[green]PROMPT:[/] Type valid [red]sql server connection string[/], SAMPLE: [blue]server=serverName; database=databaseName; user=username; password=password;[/]");
 
-                Console.WriteLine("Provide the valid SQL Server Connection String...");
                 var connectionString = Console.ReadLine();
                 EnvironmentVariableHelper.Set("SqlServerConnectionString", connectionString);
-
-                Console.WriteLine("SqlServerConnectionString Set Successfully!");
+                SpectreConsoleHelper.Success("[white]LOG:[/] Sql server connection string set successfully...");
 
                 if (!IsServerConnected(sqlServerConnection)) goto sqlServerStart;
             }
         }
+        SpectreConsoleHelper.Success("[white]LOG:[/] Sql server connected...");
 
     postgreSqlStart:
         using (var postgreSqlConnection = _provider.GetPostgresqlConnection())
         {
             if (!IsServerConnected(postgreSqlConnection))
             {
-                Console.WriteLine("Invalid PostgreSQL Connection!");
+                SpectreConsoleHelper.Warning("[red]WARN:[/] Invalid postgresql connection..");
+                SpectreConsoleHelper.Information("[blue]INFO:[/] Provide the valid [green]postgresql connection string[/]");
+                AnsiConsole.MarkupLine("[green]PROMPT:[/] Type valid [red]postgresql connection string[/], SAMPLE: [blue]Server=127.0.0.1;Port=5432;Database=databaseName;User Id=postgres;Password=password;[/]");
 
-                Console.WriteLine("Provide the valid PostgreSQL Connection String...");
                 var connectionString = Console.ReadLine();
                 EnvironmentVariableHelper.Set("PostgresqlConnectionString", connectionString);
-
-                Console.WriteLine("PostgresqlConnectionString Set Successfully!");
+                SpectreConsoleHelper.Success("[white]LOG:[/] Postgresql connection string set successfully...");
 
                 if (!IsServerConnected(postgreSqlConnection)) goto postgreSqlStart;
             }
         }
+        SpectreConsoleHelper.Success("[white]LOG:[/] PostgreSQL connected...");
     }
 
     #region Private methods
