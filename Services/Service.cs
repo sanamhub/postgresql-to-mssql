@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
-using System.Reflection;
 using Application.Providers.Interfaces;
 using Application.Services.Interfaces;
 using Application.Validators.Interfaces;
@@ -46,9 +45,7 @@ internal class Service : IService
             foreach (var sourceSchema in schemas)
             {
                 // modify unsupported schemas
-                string destinationSchema = sourceSchema;
-                if (sourceSchema == "public") destinationSchema = "public_new";
-                if (sourceSchema == "tran") destinationSchema = "tran_new";
+                string destinationSchema = $"{sourceSchema}_new";
 
                 // create schema
                 var createDestinationSchemaQuery = $"CREATE SCHEMA [{destinationSchema}];";
@@ -71,7 +68,7 @@ internal class Service : IService
                     sqlServerConnection.Execute(createTableQuery);
 
                     // fetch data from postgres
-                    var data = postgresConnection.Query<object>($"SELECT * FROM {sourceSchema}.{table}").ToList();
+                    var data = postgresConnection.Query<dynamic>($"SELECT * FROM {sourceSchema}.{table}").ToList();
 
                     // bulk copy to sql server
                     using var bulkCopy = new SqlBulkCopy(sqlServerConnection);
@@ -127,25 +124,24 @@ internal class Service : IService
         return typeMapping.TryGetValue(postgresType.ToLower(), out string value) ? value : "nvarchar(max)";
     }
 
-    private static DataTable ToDataTable<T>(List<T> items)
+    private static DataTable ToDataTable(List<dynamic> items)
     {
-        var dataTable = new DataTable(typeof(T).Name);
+        var dataTable = new DataTable("DynamicObject");
 
-        // Get all properties of the object
-        var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        foreach (var prop in props)
+        foreach (dynamic item in items)
         {
-            // Adding column names as property names
-            dataTable.Columns.Add(prop.Name, prop.PropertyType);
-        }
-
-        foreach (T item in items)
-        {
-            var values = new object[props.Length];
-            for (int i = 0; i < props.Length; i++)
+            if (dataTable.Columns.Count == 0)
             {
-                // Inserting property values to datatable rows
-                values[i] = props[i].GetValue(item, null);
+                foreach (var property in item)
+                {
+                    dataTable.Columns.Add(property.Key);
+                }
+            }
+            var values = new object[dataTable.Columns.Count];
+            var i = 0;
+            foreach (var property in item)
+            {
+                values[i++] = property.Value;
             }
             dataTable.Rows.Add(values);
         }
