@@ -27,16 +27,15 @@ internal class Service : IService
     {
         try
         {
+            _validator.ValidateProviders();
+
             SpectreConsoleHelper.WriteHeader("postgresql to mssql", Color.Blue);
             SpectreConsoleHelper.Log("LOG: Initializing...");
             AnsiConsole.Status()
-                .Spinner(Spinner.Known.Aesthetic)
+                .Spinner(Spinner.Known.Arc)
                 .SpinnerStyle(Style.Parse("green"))
                 .Start("Starting the migration...", ctx =>
                 {
-                    ctx.Status("Connecting sql server and postgresql...");
-                    _validator.ValidateProviders();
-
                     using var postgresConnection = _provider.GetPostgresqlConnection();
                     using var sqlServerConnection = _provider.GetSqlServerConnection();
 
