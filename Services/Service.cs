@@ -1,9 +1,11 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using Application.Helpers;
 using Application.Providers.Interfaces;
 using Application.Services.Interfaces;
 using Application.Validators.Interfaces;
 using Dapper;
+using Spectre.Console;
 
 namespace Application;
 
@@ -27,60 +29,77 @@ internal class Service : IService
         {
             _validator.ValidateProviders();
 
-            using var postgresConnection = _provider.GetPostgresqlConnection();
-            using var sqlServerConnection = _provider.GetSqlServerConnection();
-
-            postgresConnection.Open();
-            sqlServerConnection.Open();
-
-            // get list of schemas
-            var getSchemasQuery = "SELECT schema_name FROM information_schema.schemata";
-            var schemas = postgresConnection.Query<string>(getSchemasQuery).ToList();
-
-            // remove postgres schemas
-            schemas.Remove("information_schema");
-            schemas.Remove("pg_catalog");
-            schemas.Remove("pg_toast");
-
-            foreach (var sourceSchema in schemas)
-            {
-                // modify unsupported schemas
-                string destinationSchema = $"{sourceSchema}_new";
-
-                // create schema
-                var createDestinationSchemaQuery = $"CREATE SCHEMA [{destinationSchema}];";
-                sqlServerConnection.Execute(createDestinationSchemaQuery);
-
-                // get list of tables
-                var getTablesQuery = $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{sourceSchema}'";
-                var tables = postgresConnection.Query<string>(getTablesQuery).ToList();
-
-                foreach (var table in tables)
+            SpectreConsoleHelper.WriteHeader("postgresql to mssql", Color.Blue);
+            SpectreConsoleHelper.Log("Initializing...");
+            AnsiConsole.Status()
+                .Spinner(Spinner.Known.Arc)
+                .SpinnerStyle(Style.Parse("green"))
+                .Start("Starting the migration...", ctx =>
                 {
-                    // get the table column's definition
-                    var getColumnsQuery = $"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table}' AND table_schema = '{sourceSchema}'";
-                    var columns = postgresConnection.Query(getColumnsQuery);
+                    using var postgresConnection = _provider.GetPostgresqlConnection();
+                    using var sqlServerConnection = _provider.GetSqlServerConnection();
 
-                    // create the table in sql server
-                    var createTableQuery = $"CREATE TABLE {destinationSchema}.{table} (";
-                    createTableQuery += string.Join(", ", columns.Select(c => $"{c.column_name} {MapPostgresToSqlServerType(c.data_type)}"));
-                    createTableQuery += ")";
-                    sqlServerConnection.Execute(createTableQuery);
+                    ctx.Status("Fetching postgresql schemas");
+                    ctx.Spinner(Spinner.Known.BouncingBall);
+                    var getSchemasQuery = "SELECT schema_name FROM information_schema.schemata";
+                    var schemas = postgresConnection.Query<string>(getSchemasQuery).ToList();
+                    SpectreConsoleHelper.Log("Fetched schemas from postgresql...");
 
-                    // fetch data from postgres
-                    var data = postgresConnection.Query<dynamic>($"SELECT * FROM {sourceSchema}.{table}").ToList();
+                    schemas.Remove("information_schema");
+                    schemas.Remove("pg_catalog");
+                    schemas.Remove("pg_toast");
 
-                    // bulk copy to sql server
-                    using var bulkCopy = new SqlBulkCopy(sqlServerConnection);
-                    var dataTable = ToDataTable(data);
-                    bulkCopy.DestinationTableName = $"[{destinationSchema}].[{table}]";
-                    bulkCopy.WriteToServer(dataTable);
-                }
-            }
+                    ctx.Status("Looping through available schemas...");
+                    foreach (var sourceSchema in schemas)
+                    {
+                        string destinationSchema = $"{sourceSchema}_new";
+
+                        ctx.Status($"Creating [{destinationSchema}] schema in sql server...");
+                        var createDestinationSchemaQuery = $"CREATE SCHEMA [{destinationSchema}];";
+                        sqlServerConnection.Execute(createDestinationSchemaQuery);
+                        SpectreConsoleHelper.Log($"Created [{destinationSchema}] schema in sql server...");
+
+                        ctx.Status($"Fetching available tables from [{sourceSchema}] schema...");
+                        var getTablesQuery = $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{sourceSchema}'";
+                        var tables = postgresConnection.Query<string>(getTablesQuery).ToList();
+                        SpectreConsoleHelper.Log($"Fetched tables of [{sourceSchema}] schema from postgres");
+
+                        ctx.Status($"Looping through all tables of [{sourceSchema}] schema...");
+                        foreach (var table in tables)
+                        {
+                            ctx.Status($"Fetching column definition for [{table}] table...");
+                            var getColumnsQuery = $"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table}' AND table_schema = '{sourceSchema}'";
+                            var columns = postgresConnection.Query(getColumnsQuery);
+                            SpectreConsoleHelper.Log($"Fetched column definition for [{table}] table...");
+
+                            ctx.Status($"Creating table [{destinationSchema}].[{table}] in sql server...");
+                            var createTableQuery = $"CREATE TABLE {destinationSchema}.{table} (";
+                            createTableQuery += string.Join(", ", columns.Select(c => $"{c.column_name} {MapPostgresToSqlServerType(c.data_type)}"));
+                            createTableQuery += ")";
+                            sqlServerConnection.Execute(createTableQuery);
+                            SpectreConsoleHelper.Log($"Created table [{destinationSchema}].[{table}] in sql server...");
+
+                            ctx.Status($"Fetching data from [{sourceSchema}].[{table}] from postgresql...");
+                            var data = postgresConnection.Query<dynamic>($"SELECT * FROM {sourceSchema}.{table}").ToList();
+                            SpectreConsoleHelper.Log($"Fetched data from [{sourceSchema}].[{table}] table of postgresql...");
+
+                            ctx.Status("Coverting the data into proper shape before migrating to sql server...");
+                            var dataTable = ToDataTable(data);
+                            SpectreConsoleHelper.Log("Converted data into proper shape...");
+
+                            ctx.Status($"Transferring data from [blue][{sourceSchema}].[{table}][/] to [green][{destinationSchema}].[{table}][/]");
+                            using var bulkCopy = new SqlBulkCopy(sqlServerConnection);
+                            bulkCopy.DestinationTableName = $"[{destinationSchema}].[{table}]";
+                            bulkCopy.WriteToServer(dataTable);
+                            SpectreConsoleHelper.Success($"Successfully transferred data from [{sourceSchema}].[{table}] to [{destinationSchema}].[{table}]");
+                        }
+                    }
+                });
+            SpectreConsoleHelper.WriteHeader("Success!", Color.Green);
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            AnsiConsole.WriteException(ex);
         }
     }
 
