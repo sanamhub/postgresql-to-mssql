@@ -31,7 +31,7 @@ Please fork the repository and submit a pull request. For more [CONTRIBUTING.md]
 
 ### License
 
-This project is licensed under the MIT License
+This project is licensed under the [MIT License](https://github.com/sanamhub/postgresql-to-mssql/blob/main/LICENSE)
 
 ### Acknowledgements
 
