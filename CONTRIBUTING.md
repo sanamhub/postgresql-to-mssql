@@ -6,7 +6,7 @@ We welcome contributions to our project, postgresql-to-mssql, which is a .NET co
 
 1. Fork the repository and clone it to your local machine.
 
-```
+```bash
 https://github.com/sanamhub/postgresql-to-mssql.git
 ```
 
