@@ -39,6 +39,9 @@ internal class Service : IService
                     using var postgresConnection = _provider.GetPostgresqlConnection();
                     using var sqlServerConnection = _provider.GetSqlServerConnection();
 
+                    postgresConnection.Open();
+                    sqlServerConnection.Open();
+
                     ctx.Status("Fetching postgresql schemas");
                     ctx.Spinner(Spinner.Known.BouncingBall);
                     var getSchemasQuery = "SELECT schema_name FROM information_schema.schemata";
@@ -54,44 +57,44 @@ internal class Service : IService
                     {
                         string destinationSchema = $"{sourceSchema}_new";
 
-                        ctx.Status($"Creating [{destinationSchema}] schema in sql server...");
+                        ctx.Status($"Creating {destinationSchema} schema in sql server...");
                         var createDestinationSchemaQuery = $"CREATE SCHEMA [{destinationSchema}];";
                         sqlServerConnection.Execute(createDestinationSchemaQuery);
-                        SpectreConsoleHelper.Log($"Created [{destinationSchema}] schema in sql server...");
+                        SpectreConsoleHelper.Log($"Created {destinationSchema} schema in sql server...");
 
-                        ctx.Status($"Fetching available tables from [{sourceSchema}] schema...");
+                        ctx.Status($"Fetching available tables from {sourceSchema} schema...");
                         var getTablesQuery = $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{sourceSchema}'";
                         var tables = postgresConnection.Query<string>(getTablesQuery).ToList();
-                        SpectreConsoleHelper.Log($"Fetched tables of [{sourceSchema}] schema from postgres");
+                        SpectreConsoleHelper.Log($"Fetched tables of {sourceSchema} schema from postgres");
 
-                        ctx.Status($"Looping through all tables of [{sourceSchema}] schema...");
+                        ctx.Status($"Looping through all tables of {sourceSchema} schema...");
                         foreach (var table in tables)
                         {
-                            ctx.Status($"Fetching column definition for [{table}] table...");
+                            ctx.Status($"Fetching column definition for {table} table...");
                             var getColumnsQuery = $"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table}' AND table_schema = '{sourceSchema}'";
                             var columns = postgresConnection.Query(getColumnsQuery);
-                            SpectreConsoleHelper.Log($"Fetched column definition for [{table}] table...");
+                            SpectreConsoleHelper.Log($"Fetched column definition for {table} table...");
 
-                            ctx.Status($"Creating table [{destinationSchema}].[{table}] in sql server...");
+                            ctx.Status($"Creating table {destinationSchema}.{table} in sql server...");
                             var createTableQuery = $"CREATE TABLE {destinationSchema}.{table} (";
                             createTableQuery += string.Join(", ", columns.Select(c => $"{c.column_name} {MapPostgresToSqlServerType(c.data_type)}"));
                             createTableQuery += ")";
                             sqlServerConnection.Execute(createTableQuery);
-                            SpectreConsoleHelper.Log($"Created table [{destinationSchema}].[{table}] in sql server...");
+                            SpectreConsoleHelper.Log($"Created table {destinationSchema}.{table} in sql server...");
 
-                            ctx.Status($"Fetching data from [{sourceSchema}].[{table}] from postgresql...");
+                            ctx.Status($"Fetching data from {sourceSchema}.{table} from postgresql...");
                             var data = postgresConnection.Query<dynamic>($"SELECT * FROM {sourceSchema}.{table}").ToList();
-                            SpectreConsoleHelper.Log($"Fetched data from [{sourceSchema}].[{table}] table of postgresql...");
+                            SpectreConsoleHelper.Log($"Fetched data from {sourceSchema}.{table} table of postgresql...");
 
                             ctx.Status("Coverting the data into proper shape before migrating to sql server...");
                             var dataTable = ToDataTable(data);
                             SpectreConsoleHelper.Log("Converted data into proper shape...");
 
-                            ctx.Status($"Transferring data from [blue][{sourceSchema}].[{table}][/] to [green][{destinationSchema}].[{table}][/]");
+                            ctx.Status($"Transferring data from [blue]{sourceSchema}.{table}[/] to [green]{destinationSchema}.{table}[/]");
                             using var bulkCopy = new SqlBulkCopy(sqlServerConnection);
-                            bulkCopy.DestinationTableName = $"[{destinationSchema}].[{table}]";
+                            bulkCopy.DestinationTableName = $"{destinationSchema}.{table}";
                             bulkCopy.WriteToServer(dataTable);
-                            SpectreConsoleHelper.Success($"Successfully transferred data from [{sourceSchema}].[{table}] to [{destinationSchema}].[{table}]");
+                            SpectreConsoleHelper.Success($"Successfully transferred data from {sourceSchema}.{table} to {destinationSchema}.{table}");
                         }
                     }
                 });
