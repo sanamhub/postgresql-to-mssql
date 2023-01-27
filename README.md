@@ -26,7 +26,8 @@ As an open source enthusiast, I noticed the lack of workable open source tools f
 
 ### Contributing
 
-If you would like to contribute to this project, please fork the repository and submit a pull request.
+If you would like to contribute to this project, please fork the repository and submit a pull request. For more [CONTRIBUTING.md](https://github.com/sanamhub/postgresql-to-mssql/blob/main/CONTRIBUTING.md)
+
 
 ### License
 
