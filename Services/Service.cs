@@ -27,9 +27,10 @@ internal class Service : IService
     {
         try
         {
+            SpectreConsoleHelper.WriteHeader("postgresql to mssql", Color.Blue);
+
             _validator.ValidateProviders();
 
-            SpectreConsoleHelper.WriteHeader("postgresql to mssql", Color.Blue);
             SpectreConsoleHelper.Log("Initializing...");
             AnsiConsole.Status()
                 .Spinner(Spinner.Known.Arc)
@@ -93,6 +94,7 @@ internal class Service : IService
                             ctx.Status($"Transferring data from [blue]{sourceSchema}.{table}[/] to [green]{destinationSchema}.{table}[/]");
                             using var bulkCopy = new SqlBulkCopy(sqlServerConnection);
                             bulkCopy.DestinationTableName = $"{destinationSchema}.{table}";
+                            bulkCopy.BulkCopyTimeout = 300;
                             bulkCopy.WriteToServer(dataTable);
                             SpectreConsoleHelper.Success($"Successfully transferred data from {sourceSchema}.{table} to {destinationSchema}.{table}");
                         }
