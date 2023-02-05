@@ -33,7 +33,7 @@ internal class Service : IService
 
             SpectreConsoleHelper.Log("Initializing...");
             AnsiConsole.Status()
-                .Spinner(Spinner.Known.Arc)
+                .Spinner(Spinner.Known.Arrow3)
                 .SpinnerStyle(Style.Parse("green"))
                 .Start("Starting the migration...", ctx =>
                 {
