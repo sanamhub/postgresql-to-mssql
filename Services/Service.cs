@@ -116,8 +116,8 @@ internal class Service : IService
         {
             { "bigint", "bigint" },
             { "boolean", "bit" },
-            { "character", "char" },
-            { "character varying", "nvarchar(max)" },
+            { "character", "nchar" },
+            { "character varying", "nvarchar(MAX)" },
             { "date", "date" },
             { "double precision", "float" },
             { "integer", "int" },
@@ -125,27 +125,27 @@ internal class Service : IService
             { "numeric", "decimal" },
             { "real", "real" },
             { "smallint", "smallint" },
-            { "text", "nvarchar(max)" },
+            { "text", "nvarchar(MAX)" },
             { "time", "time" },
             { "timestamp", "datetime2" },
             { "timestamptz", "datetimeoffset" },
             { "uuid", "uniqueidentifier" },
-            { "bytea", "varbinary(max)" },
+            { "bytea", "varbinary(MAX)" },
             { "bit", "bit" },
-            { "bit varying", "varbinary(max)" },
+            { "bit varying", "varbinary(MAX)" },
             { "money", "money" },
-            { "json", "nvarchar(max)" },
-            { "jsonb", "nvarchar(max)" },
-            { "cidr", "nvarchar(max)" },
-            { "inet", "nvarchar(max)" },
-            { "macaddr", "nvarchar(max)" },
-            { "tsvector", "nvarchar(max)" },
-            { "tsquery", "nvarchar(max)" },
-            { "array", "nvarchar(max)" },
-            { "domain", "nvarchar(max)" },
+            { "json", "nvarchar(MAX)" },
+            { "jsonb", "nvarchar(MAX)" },
+            { "cidr", "nvarchar(MAX)" },
+            { "inet", "nvarchar(MAX)" },
+            { "macaddr", "nvarchar(MAX)" },
+            { "tsvector", "nvarchar(MAX)" },
+            { "tsquery", "nvarchar(MAX)" },
+            { "array", "nvarchar(MAX)" },
+            { "domain", "nvarchar(MAX)" },
         };
 
-        return typeMapping.TryGetValue(postgresType.ToLower(), out string value) ? value : "nvarchar(max)";
+        return typeMapping.TryGetValue(postgresType.ToLower(), out string? value) ? value : "nvarchar(MAX)";
     }
 
     private static DataTable ToDataTable(List<dynamic> items)
