@@ -49,9 +49,26 @@ internal class Service : IService
                     var schemas = postgresConnection.Query<string>(getSchemasQuery).ToList();
                     SpectreConsoleHelper.Log("Fetched schemas from postgresql...");
 
-                    schemas.Remove("information_schema");
-                    schemas.Remove("pg_catalog");
-                    schemas.Remove("pg_toast");
+                    if (schemas.Contains("information_schema"))
+                    {
+                        schemas.Remove("information_schema");
+                    }
+                    if (schemas.Contains("pg_catalog"))
+                    {
+                        schemas.Remove("pg_catalog");
+                    }
+                    if (schemas.Contains("pg_toast"))
+                    {
+                        schemas.Remove("pg_toast");
+                    }
+                    if (schemas.Contains("pg_temp_1"))
+                    {
+                        schemas.Remove("pg_temp_1");
+                    }
+                    if (schemas.Contains("pg_toast_temp_1"))
+                    {
+                        schemas.Remove("pg_toast_temp_1");
+                    }
 
                     ctx.Status("Looping through available schemas...");
                     foreach (var sourceSchema in schemas)
@@ -78,7 +95,7 @@ internal class Service : IService
 
                             ctx.Status($"Creating table {destinationSchema}.{table} in sql server...");
                             var createTableQuery = $"CREATE TABLE {destinationSchema}.{table} (";
-                            createTableQuery += string.Join(", ", columns.Select(c => $"{c.column_name} {MapPostgresToSqlServerType(c.data_type)}"));
+                            createTableQuery += string.Join(", ", columns.Select(c => $"[{c.column_name}] {MapPostgresToSqlServerDataType(c.data_type)}"));
                             createTableQuery += ")";
                             sqlServerConnection.Execute(createTableQuery);
                             SpectreConsoleHelper.Log($"Created table {destinationSchema}.{table} in sql server...");
@@ -110,14 +127,14 @@ internal class Service : IService
 
     #region Private methods
 
-    private static string MapPostgresToSqlServerType(string postgresType)
+    private static string MapPostgresToSqlServerDataType(string postgresDataType)
     {
-        var typeMapping = new Dictionary<string, string>
+        var map = new Dictionary<string, string>
         {
             { "bigint", "bigint" },
             { "boolean", "bit" },
-            { "character", "nchar" },
-            { "character varying", "nvarchar(MAX)" },
+            { "character", "char" },
+            { "character varying", "nvarchar(max)" },
             { "date", "date" },
             { "double precision", "float" },
             { "integer", "int" },
@@ -125,27 +142,27 @@ internal class Service : IService
             { "numeric", "decimal" },
             { "real", "real" },
             { "smallint", "smallint" },
-            { "text", "nvarchar(MAX)" },
+            { "text", "nvarchar(max)" },
             { "time", "time" },
             { "timestamp", "datetime2" },
             { "timestamptz", "datetimeoffset" },
             { "uuid", "uniqueidentifier" },
-            { "bytea", "varbinary(MAX)" },
+            { "bytea", "varbinary(max)" },
             { "bit", "bit" },
-            { "bit varying", "varbinary(MAX)" },
+            { "bit varying", "varbinary(max)" },
             { "money", "money" },
-            { "json", "nvarchar(MAX)" },
-            { "jsonb", "nvarchar(MAX)" },
-            { "cidr", "nvarchar(MAX)" },
-            { "inet", "nvarchar(MAX)" },
-            { "macaddr", "nvarchar(MAX)" },
-            { "tsvector", "nvarchar(MAX)" },
-            { "tsquery", "nvarchar(MAX)" },
-            { "array", "nvarchar(MAX)" },
-            { "domain", "nvarchar(MAX)" },
+            { "json", "nvarchar(max)" },
+            { "jsonb", "nvarchar(max)" },
+            { "cidr", "nvarchar(max)" },
+            { "inet", "nvarchar(max)" },
+            { "macaddr", "nvarchar(max)" },
+            { "tsvector", "nvarchar(max)" },
+            { "tsquery", "nvarchar(max)" },
+            { "array", "nvarchar(max)" },
+            { "domain", "nvarchar(max)" },
         };
 
-        return typeMapping.TryGetValue(postgresType.ToLower(), out string? value) ? value : "nvarchar(MAX)";
+        return map.TryGetValue(postgresDataType.ToLower(), out string? value) ? value.ToUpper() : "nvarchar(max)".ToUpper();
     }
 
     private static DataTable ToDataTable(List<dynamic> items)
