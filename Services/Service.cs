@@ -160,6 +160,7 @@ internal class Service : IService
             { "tsquery", "nvarchar(max)" },
             { "array", "nvarchar(max)" },
             { "domain", "nvarchar(max)" },
+            { "timestamp with time zone", "datetimeoffset" },
         };
 
         return map.TryGetValue(postgresDataType.ToLower(), out string? value) ? value.ToUpper() : "nvarchar(max)".ToUpper();
