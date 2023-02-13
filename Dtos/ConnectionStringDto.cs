@@ -2,6 +2,6 @@
 
 internal class ConnectionStringDto
 {
-    public string SqlServerConnectionString { get; set; }
-    public string PostgreSqlConnectionString { get; set; }
+    public string SqlServerConnectionString { get; set; } = default!;
+    public string PostgreSqlConnectionString { get; set; } = default!;
 }
