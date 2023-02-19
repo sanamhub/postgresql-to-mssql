@@ -33,7 +33,7 @@ internal class Service : IService
 
             SpectreConsoleHelper.Log("Initializing...");
             AnsiConsole.Status()
-                .Spinner(Spinner.Known.Arc)
+                .Spinner(Spinner.Known.Arrow3)
                 .SpinnerStyle(Style.Parse("green"))
                 .Start("Starting the migration...", ctx =>
                 {
@@ -49,9 +49,7 @@ internal class Service : IService
                     var schemas = postgresConnection.Query<string>(getSchemasQuery).ToList();
                     SpectreConsoleHelper.Log("Fetched schemas from postgresql...");
 
-                    schemas.Remove("information_schema");
-                    schemas.Remove("pg_catalog");
-                    schemas.Remove("pg_toast");
+                    RemoveUnnecessarySchemas(schemas);
 
                     ctx.Status("Looping through available schemas...");
                     foreach (var sourceSchema in schemas)
@@ -78,17 +76,18 @@ internal class Service : IService
 
                             ctx.Status($"Creating table {destinationSchema}.{table} in sql server...");
                             var createTableQuery = $"CREATE TABLE {destinationSchema}.{table} (";
-                            createTableQuery += string.Join(", ", columns.Select(c => $"{c.column_name} {MapPostgresToSqlServerType(c.data_type)}"));
+                            createTableQuery += string.Join(", ", columns.Select(column => $"[{column.column_name}] {ConvertPostgreSqlToSqlServerDataType(column.data_type)}"));
                             createTableQuery += ")";
                             sqlServerConnection.Execute(createTableQuery);
                             SpectreConsoleHelper.Log($"Created table {destinationSchema}.{table} in sql server...");
 
                             ctx.Status($"Fetching data from {sourceSchema}.{table} from postgresql...");
-                            var data = postgresConnection.Query<dynamic>($"SELECT * FROM {sourceSchema}.{table}").ToList();
+                            var data = postgresConnection.ExecuteReader($"SELECT * FROM {sourceSchema}.{table}");
                             SpectreConsoleHelper.Log($"Fetched data from {sourceSchema}.{table} table of postgresql...");
 
                             ctx.Status("Coverting the data into proper shape before migrating to sql server...");
-                            var dataTable = ToDataTable(data);
+                            var dataTable = new DataTable();
+                            dataTable.Load(data);
                             SpectreConsoleHelper.Log("Converted data into proper shape...");
 
                             ctx.Status($"Transferring data from [blue]{sourceSchema}.{table}[/] to [green]{destinationSchema}.{table}[/]");
@@ -110,9 +109,33 @@ internal class Service : IService
 
     #region Private methods
 
-    private static string MapPostgresToSqlServerType(string postgresType)
+    private static void RemoveUnnecessarySchemas(List<string> schemas)
     {
-        var typeMapping = new Dictionary<string, string>
+        if (schemas.Contains("information_schema"))
+        {
+            schemas.Remove("information_schema");
+        }
+        if (schemas.Contains("pg_catalog"))
+        {
+            schemas.Remove("pg_catalog");
+        }
+        if (schemas.Contains("pg_toast"))
+        {
+            schemas.Remove("pg_toast");
+        }
+        if (schemas.Contains("pg_temp_1"))
+        {
+            schemas.Remove("pg_temp_1");
+        }
+        if (schemas.Contains("pg_toast_temp_1"))
+        {
+            schemas.Remove("pg_toast_temp_1");
+        }
+    }
+
+    private static string ConvertPostgreSqlToSqlServerDataType(string postgresDataType)
+    {
+        var map = new Dictionary<string, string>
         {
             { "bigint", "bigint" },
             { "boolean", "bit" },
@@ -143,34 +166,10 @@ internal class Service : IService
             { "tsquery", "nvarchar(max)" },
             { "array", "nvarchar(max)" },
             { "domain", "nvarchar(max)" },
+            { "timestamp with time zone", "datetimeoffset" },
         };
 
-        return typeMapping.TryGetValue(postgresType.ToLower(), out string value) ? value : "nvarchar(max)";
-    }
-
-    private static DataTable ToDataTable(List<dynamic> items)
-    {
-        var dataTable = new DataTable("DynamicObject");
-
-        foreach (dynamic item in items)
-        {
-            if (dataTable.Columns.Count == 0)
-            {
-                foreach (var property in item)
-                {
-                    dataTable.Columns.Add(property.Key);
-                }
-            }
-            var values = new object[dataTable.Columns.Count];
-            var i = 0;
-            foreach (var property in item)
-            {
-                values[i++] = property.Value;
-            }
-            dataTable.Rows.Add(values);
-        }
-
-        return dataTable;
+        return map.TryGetValue(postgresDataType.ToLower(), out string? value) ? value.ToUpper() : "nvarchar(max)".ToUpper();
     }
 
     #endregion
