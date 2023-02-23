@@ -9,24 +9,20 @@ using Spectre.Console;
 
 namespace Application;
 
-internal class Service : IService
-{
+internal class Service : IService {
     private readonly IProvider _provider;
     private readonly IValidator _validator;
 
     public Service(
         IProvider provider,
         IValidator validator
-        )
-    {
+        ) {
         _provider = provider;
         _validator = validator;
     }
 
-    public void Migrate()
-    {
-        try
-        {
+    public void Migrate() {
+        try {
             SpectreConsoleHelper.WriteHeader("postgresql to mssql", Color.Blue);
 
             _validator.ValidateProviders();
@@ -35,8 +31,7 @@ internal class Service : IService
             AnsiConsole.Status()
                 .Spinner(Spinner.Known.Arrow3)
                 .SpinnerStyle(Style.Parse("green"))
-                .Start("Starting the migration...", ctx =>
-                {
+                .Start("Starting the migration...", ctx => {
                     using var postgresConnection = _provider.GetPostgresqlConnection();
                     using var sqlServerConnection = _provider.GetSqlServerConnection();
 
@@ -52,8 +47,7 @@ internal class Service : IService
                     RemoveUnnecessarySchemas(schemas);
 
                     ctx.Status("Looping through available schemas...");
-                    foreach (var sourceSchema in schemas)
-                    {
+                    foreach (var sourceSchema in schemas) {
                         string destinationSchema = $"{sourceSchema}_new";
 
                         ctx.Status($"Creating {destinationSchema} schema in sql server...");
@@ -67,8 +61,7 @@ internal class Service : IService
                         SpectreConsoleHelper.Log($"Fetched tables of {sourceSchema} schema from postgres");
 
                         ctx.Status($"Looping through all tables of {sourceSchema} schema...");
-                        foreach (var table in tables)
-                        {
+                        foreach (var table in tables) {
                             ctx.Status($"Fetching column definition for {table} table...");
                             var getColumnsQuery = $"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table}' AND table_schema = '{sourceSchema}'";
                             var columns = postgresConnection.Query(getColumnsQuery);
@@ -101,40 +94,32 @@ internal class Service : IService
                 });
             SpectreConsoleHelper.WriteHeader("Success!", Color.Green);
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             AnsiConsole.WriteException(ex);
         }
     }
 
     #region Private methods
 
-    private static void RemoveUnnecessarySchemas(List<string> schemas)
-    {
-        if (schemas.Contains("information_schema"))
-        {
+    private static void RemoveUnnecessarySchemas(List<string> schemas) {
+        if (schemas.Contains("information_schema")) {
             schemas.Remove("information_schema");
         }
-        if (schemas.Contains("pg_catalog"))
-        {
+        if (schemas.Contains("pg_catalog")) {
             schemas.Remove("pg_catalog");
         }
-        if (schemas.Contains("pg_toast"))
-        {
+        if (schemas.Contains("pg_toast")) {
             schemas.Remove("pg_toast");
         }
-        if (schemas.Contains("pg_temp_1"))
-        {
+        if (schemas.Contains("pg_temp_1")) {
             schemas.Remove("pg_temp_1");
         }
-        if (schemas.Contains("pg_toast_temp_1"))
-        {
+        if (schemas.Contains("pg_toast_temp_1")) {
             schemas.Remove("pg_toast_temp_1");
         }
     }
 
-    private static string ConvertPostgreSqlToSqlServerDataType(string postgresDataType)
-    {
+    private static string ConvertPostgreSqlToSqlServerDataType(string postgresDataType) {
         var map = new Dictionary<string, string>
         {
             { "bigint", "bigint" },

@@ -2,8 +2,7 @@
 
 namespace Application.Helpers;
 
-internal class SpectreConsoleHelper
-{
+internal class SpectreConsoleHelper {
     public static void Log(string message) => Write($"LOG: {message}", _messageTypes[MessageTypeEnum.Log]);
 
     public static void Error(string error) => Write($"ERROR: {error}", _messageTypes[MessageTypeEnum.Error]);
@@ -14,13 +13,11 @@ internal class SpectreConsoleHelper
 
     public static void Warning(string warning) => Write($"WARN: {warning}", _messageTypes[MessageTypeEnum.Warning]);
 
-    private static void Write(string message, string color)
-    {
+    private static void Write(string message, string color) {
         AnsiConsole.MarkupLine(string.Format("[{0}]{1}[/]", color, message));
     }
 
-    public static void WriteHeader(string header, Color color)
-    {
+    public static void WriteHeader(string header, Color color) {
         AnsiConsole.Write(new FigletText(header)
             .Centered()
             .Color(color));
@@ -28,8 +25,7 @@ internal class SpectreConsoleHelper
 
     #region Privates
 
-    private enum MessageTypeEnum
-    {
+    private enum MessageTypeEnum {
         Log,
         Error,
         Information,
@@ -37,8 +33,7 @@ internal class SpectreConsoleHelper
         Warning
     }
 
-    private static readonly Dictionary<MessageTypeEnum, string> _messageTypes = new()
-    {
+    private static readonly Dictionary<MessageTypeEnum, string> _messageTypes = new() {
         [MessageTypeEnum.Log] = "white",
         [MessageTypeEnum.Error] = "red",
         [MessageTypeEnum.Information] = "blue",
