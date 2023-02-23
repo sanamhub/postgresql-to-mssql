@@ -1,6 +1,5 @@
 ﻿namespace Application.Validators.Interfaces;
 
-internal interface IValidator
-{
+internal interface IValidator {
     void ValidateProviders();
 }

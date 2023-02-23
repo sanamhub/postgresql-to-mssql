@@ -7,18 +7,15 @@ using Npgsql;
 
 namespace Application;
 
-internal class Provider : IProvider
-{
-    public SqlConnection GetSqlServerConnection() => new(ConnectionString.SqlServerConnectionString);
+internal class Provider : IProvider {
+    public SqlConnection GetSqlServerConnection() => new(ConnectionString?.SqlServerConnectionString);
 
-    public IDbConnection GetPostgresqlConnection() => new NpgsqlConnection(ConnectionString.PostgreSqlConnectionString);
+    public IDbConnection GetPostgresqlConnection() => new NpgsqlConnection(ConnectionString?.PostgreSqlConnectionString);
 
     #region Private methods
 
-    private static ConnectionStringDto ConnectionString
-    {
-        get
-        {
+    private static ConnectionStringDto? ConnectionString {
+        get {
             var text = File.ReadAllText("./connectionString.json");
             return JsonSerializer.Deserialize<ConnectionStringDto>(text);
         }
