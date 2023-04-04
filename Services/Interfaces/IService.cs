@@ -1,5 +1,6 @@
 ﻿namespace Application.Services.Interfaces;
 
-internal interface IService {
+internal interface IService
+{
     void Migrate();
 }

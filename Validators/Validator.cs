@@ -5,24 +5,31 @@ using Application.Validators.Interfaces;
 
 namespace Application.Validators;
 
-internal class Validator : IValidator {
+internal class Validator : IValidator
+{
     private readonly IProvider _provider;
 
-    public Validator(IProvider provider) {
+    public Validator(IProvider provider)
+    {
         _provider = provider;
     }
 
-    public void ValidateProviders() {
-        using (var sqlServerConnection = _provider.GetSqlServerConnection()) {
-            if (!IsServerConnected(sqlServerConnection)) {
+    public void ValidateProviders()
+    {
+        using (var sqlServerConnection = _provider.GetSqlServerConnection())
+        {
+            if (!IsServerConnected(sqlServerConnection))
+            {
                 SpectreConsoleHelper.Error("Invalid sql server connection.. ( Configure properly at connectionString.json )");
                 Console.ReadLine();
             }
         }
         SpectreConsoleHelper.Success("Sql server connected...");
 
-        using (var postgreSqlConnection = _provider.GetPostgresqlConnection()) {
-            if (!IsServerConnected(postgreSqlConnection)) {
+        using (var postgreSqlConnection = _provider.GetPostgresqlConnection())
+        {
+            if (!IsServerConnected(postgreSqlConnection))
+            {
                 SpectreConsoleHelper.Error("Invalid postgresql connection.. ( Configure properly at connectionString.json )");
                 Console.ReadLine();
             }
@@ -32,12 +39,15 @@ internal class Validator : IValidator {
 
     #region Private methods
 
-    private static bool IsServerConnected(IDbConnection connection) {
-        try {
+    private static bool IsServerConnected(IDbConnection connection)
+    {
+        try
+        {
             connection.Open();
             return true;
         }
-        catch (Exception) {
+        catch (Exception)
+        {
             return false;
         }
     }
