@@ -25,7 +25,7 @@ internal class Service : IService
 
     public void Migrate()
     {
-        var errorList = new List<string>();
+        var errors = new List<string>();
 
         try
         {
@@ -104,7 +104,7 @@ internal class Service : IService
                             }
                             catch (Exception ex)
                             {
-                                errorList.Add($"{sourceSchema}~{table}");
+                                errors.Add($"{sourceSchema}~{table}");
                                 AnsiConsole.WriteException(ex);
                             }
                         }
@@ -118,7 +118,7 @@ internal class Service : IService
         }
         finally
         {
-            if (errorList.Any())
+            if (errors.Any())
             {
                 var table = new Table();
                 table.Title("List of failed migration table/views");
@@ -126,7 +126,7 @@ internal class Service : IService
                 table.AddColumn("SourceSchema");
                 table.AddColumn("SourceTable");
 
-                foreach (var error in errorList)
+                foreach (var error in errors)
                 {
                     var errorDetails = error.Split("~");
                     table.AddRow(errorDetails[0], errorDetails[1]);
