@@ -10,7 +10,7 @@
     <PackageReference Include="Dapper" Version="2.1.21" />
     <PackageReference Include="Npgsql" Version="8.0.0" />
     <PackageReference Include="Spectre.Console" Version="0.47.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
