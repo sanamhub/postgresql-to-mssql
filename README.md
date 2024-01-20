@@ -1,5 +1,5 @@
 <div align="center">
-## ⚠️ This project is still in beta, and under development ⚠️
+<h2>⚠️ This project is still in beta, and under development ⚠️</h2>
 </div>
 
 <img width="127" src="https://user-images.githubusercontent.com/31341013/215936565-7ac354b1-9ae8-47ff-8f89-c455cb903ea6.png"></img>
