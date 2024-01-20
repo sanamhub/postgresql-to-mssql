@@ -2,7 +2,7 @@
 
 # postgresql-to-mssql
 
-## This project is still in beta, and under development ⚠️
+## ⚠️ This project is still in beta, and under development ⚠️
 
 Migrate data from postgresql to sql server on the fly!
 
