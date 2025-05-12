@@ -1,5 +1,6 @@
-﻿using Application;
+﻿using Application.Providers;
 using Application.Providers.Interfaces;
+using Application.Services;
 using Application.Services.Interfaces;
 using Application.Validators;
 using Application.Validators.Interfaces;

@@ -1,11 +1,11 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using System.Text.Json;
-using Application.Dtos;
+﻿using Application.Dtos;
 using Application.Providers.Interfaces;
+using Microsoft.Data.SqlClient;
 using Npgsql;
+using System.Data;
+using System.Text.Json;
 
-namespace Application;
+namespace Application.Providers;
 
 internal class Provider : IProvider
 {

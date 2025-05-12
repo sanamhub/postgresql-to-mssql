@@ -1,7 +1,7 @@
-﻿using System.Data;
-using Application.Helpers;
+﻿using Application.Helpers;
 using Application.Providers.Interfaces;
 using Application.Validators.Interfaces;
+using System.Data;
 
 namespace Application.Validators;
 

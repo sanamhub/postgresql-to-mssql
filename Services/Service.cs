@@ -1,13 +1,13 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using Application.Helpers;
+﻿using Application.Helpers;
 using Application.Providers.Interfaces;
 using Application.Services.Interfaces;
 using Application.Validators.Interfaces;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using Spectre.Console;
+using System.Data;
 
-namespace Application;
+namespace Application.Services;
 
 internal class Service : IService
 {
@@ -118,7 +118,7 @@ internal class Service : IService
         }
         finally
         {
-            if (errors.Any())
+            if (errors.Count != 0)
             {
                 var table = new Table();
                 table.Title("List of failed migration table/views");
@@ -142,26 +142,11 @@ internal class Service : IService
 
     private static void RemoveUnnecessarySchemas(List<string> schemas)
     {
-        if (schemas.Contains("information_schema"))
-        {
-            schemas.Remove("information_schema");
-        }
-        if (schemas.Contains("pg_catalog"))
-        {
-            schemas.Remove("pg_catalog");
-        }
-        if (schemas.Contains("pg_toast"))
-        {
-            schemas.Remove("pg_toast");
-        }
-        if (schemas.Contains("pg_temp_1"))
-        {
-            schemas.Remove("pg_temp_1");
-        }
-        if (schemas.Contains("pg_toast_temp_1"))
-        {
-            schemas.Remove("pg_toast_temp_1");
-        }
+        schemas.Remove("information_schema");
+        schemas.Remove("pg_catalog");
+        schemas.Remove("pg_toast");
+        schemas.Remove("pg_temp_1");
+        schemas.Remove("pg_toast_temp_1");
     }
 
     private static string ConvertPostgreSqlToSqlServerDataType(string postgresDataType)
