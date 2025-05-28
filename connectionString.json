@@ -1,4 +1,4 @@
 {
-  "SqlServerConnectionString": "Server=localhost;Database=northwind;User Id=sa;Password=1;",
-  "PostgreSqlConnectionString": "Server=127.0.0.1;Port=5432;Database=northwind;User Id=postgres;Password=1;"
+  "SqlServerConnectionString": "Server=localhost;Database=lms;User Id=sa;Password=1;TrustServerCertificate=True;",
+  "PostgreSqlConnectionString": "Server=127.0.0.1;Port=5432;Database=lms;User Id=postgres;Password=postgres;"
 }

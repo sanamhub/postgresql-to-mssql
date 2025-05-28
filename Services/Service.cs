@@ -29,7 +29,7 @@ internal class Service : IService
 
         try
         {
-            SpectreConsoleHelper.WriteHeader("postgresql to mssql", Color.Blue);
+            SpectreConsoleHelper.WriteHeader("pgsql to mssql", Color.Blue);
 
             _validator.ValidateProviders();
 

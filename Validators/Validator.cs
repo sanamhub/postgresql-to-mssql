@@ -46,8 +46,9 @@ internal class Validator : IValidator
             connection.Open();
             return true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            SpectreConsoleHelper.Error(ex.Message);
             return false;
         }
     }

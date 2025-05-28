@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
   </ItemGroup>
   <ItemGroup>
     <None Update="connectionString.json">
